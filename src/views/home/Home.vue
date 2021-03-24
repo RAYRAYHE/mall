@@ -1,22 +1,29 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物车</div></nav-bar>
-
+    <tab-control class="tab-control_"
+                     :titles="['流行', '新款', '精选']" 
+                     @tabClick="tabClick" 
+                     ref="tabControl1" v-show="isTabFixed">
+    </tab-control>
       <scroll class="content" ref="scroll" 
               :probe-type="3" 
               @scroll="contentScroll"
               :pull-up-load="true"
               @pullingUp="loadMore">
-        <home-swiper :banners="banners"></home-swiper>
+        <home-swiper :banners="banners" @swiperImageLoad="swiperImageLoad"></home-swiper>
         <recommend-view :recommends="recommends"></recommend-view>
         <feature-view></feature-view>
         <tab-control class="tab-control"
                      :titles="['流行', '新款', '精选']" 
-                     @tabClick="tabClick"></tab-control>
+                     @tabClick="tabClick" 
+                     ref="tabControl2">
+                     </tab-control>
         <good-list :goods="goods[currentType].list"></good-list>  
       </scroll>
       <!-- 监听原生组件时，必须加上native修饰符才能进行监听 -->
       <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
+      <div></div>
   </div>
 </template>
 
@@ -32,6 +39,7 @@ import Scroll from '../../components/common/scroll/Scroll'
 import BackTop from '../../components/content/backTop/BackTop'
 
 import {getMultiData, getProductData} from "../../network/home.js"
+import {debounce} from "../../common/utils";
 
 
   export default {
@@ -58,7 +66,9 @@ import {getMultiData, getProductData} from "../../network/home.js"
           'sell': {page: 1, list: []},
         },
         currentType: 'pop',
-        isShowBackTop: false
+        isShowBackTop: false,
+        tabOffsetTop: 0,
+        isTabFixed: false,
       }
     },
     created() {
@@ -70,7 +80,18 @@ import {getMultiData, getProductData} from "../../network/home.js"
       this.getProductData('new')
       this.getProductData('sell')
     },
-    methods: {
+    mounted () {
+    //3.监听item中图片加载完成
+    const refresh = () => debounce(this.$refs.scroll.refresh, 50)
+      this.$bus.$on('itemImageLoad', () => {
+        refresh()
+      })
+
+    //获取tabControl的offsetTop
+    //$el拿到的是组件的元素
+    // this.tabOffsetTop = this.$refs.tabControl.$el.offsetTop
+    },
+    methods: {    
       //事件监听相关的方法
       tabClick(index) {
         switch (index) {
@@ -84,15 +105,24 @@ import {getMultiData, getProductData} from "../../network/home.js"
             this.currentType = 'sell'
             break
         }
+        this.$refs.tabControl1.currentIndex = index;
+        this.$refs.tabControl2.currentIndex = index;
       },
       backClick() {
         this.$refs.scroll.scrollTo(0, 0, 800)
       },
       contentScroll(position) {
+        //1.判断BackTop是否显示
         this.isShowBackTop = -position.y > 1000 
+
+        //2.决定tabControl是否吸顶
+        this.isTabFixed = (-position.y) > this.tabOffsetTop
       },
       loadMore() {
         this.getProductData(this.currentType)
+      },
+      swiperImageLoad() {
+        this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop
       },
       //网络请求相关的方法
       getMultiData() {
@@ -131,7 +161,12 @@ import {getMultiData, getProductData} from "../../network/home.js"
   .tab-control {
     position: sticky;
     top: 44px;
-    z-index: 998;
+  }
+
+  .tab-control_ {
+    position: relative;
+    top: 44px;
+    z-index: 6;
   }
 
   .content {
