@@ -1,7 +1,7 @@
 <template>
-  <div class="goods-item"> 
+  <div class="goods-item" @click="itemClick"> 
     <!-- load是vue自带的监听函数加载完成属性 -->
-    <img :src="goodsItem.show.img" alt="" @load="imageLoad">
+    <img :src="showImage" alt="" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
@@ -21,10 +21,18 @@
         }
       }
     },
+    computed: {
+      showImage() {
+        return this.goodsItem.image || this.goodsItem.show.img;
+      }
+    },
     methods: {
       // console.log('imageLoad');
       imageLoad() {
         this.$bus.$emit('itemImageLoad')
+      },
+      itemClick() {
+        this.$router.push('/detail/' + this.goodsItem.iid)
       }
     }
   }

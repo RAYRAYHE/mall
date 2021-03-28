@@ -47,3 +47,4 @@ export class Shop {
 		this.goodsCount = shopInfo.cGoods
 	}
 }
+
