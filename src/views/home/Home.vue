@@ -69,7 +69,22 @@ import {debounce} from "../../common/utils";
         isShowBackTop: false,
         tabOffsetTop: 0,
         isTabFixed: false,
+        saveY: 0,
       }
+    },
+    activated() {
+      this.$refs.scroll.refresh();
+      // console.log('actived');
+      this.$refs.scroll.scrollTo(0, this.saveY, 0)
+    },
+    deactivated() {
+      // console.log('deactived');
+      //1、保存Y值
+      this.saveY = this.$refs.scroll.getScrollY();
+
+      // 2、取消全局事件监听
+      this.$bus.$off('itemImgLoad', this.itemImgListener);
+
     },
     created() {
       //1.请求多个数据

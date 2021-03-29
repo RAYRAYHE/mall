@@ -3,11 +3,6 @@
     <detail-nav-bar @titleClick="titleClick" class="detail-nav" ref="nav"></detail-nav-bar>
     <scroll class="content" ref="scroll" 
             :probe-type="3" @scroll="contentScroll">
-      <ul>
-        <li v-for="item in $store.state.cartList" :key="item.title">
-          {{item}}
-        </li>
-      </ul>
       <detail-swiper :top-images="topImages"/>
       <detail-base-info :goods="goods"></detail-base-info>
       <detail-shop-info :shop="shop"></detail-shop-info>
@@ -20,6 +15,7 @@
     </scroll>
     <detail-bottom-bar @addCart="addToCart"></detail-bottom-bar>
     <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
+    <!-- <toast :message="message" :show="show"></toast> -->
   </div>
 </template>
 <script>
@@ -35,6 +31,7 @@
   import Scroll from '../../components/common/scroll/Scroll'
   import GoodList from "../../components/content/goods/GoodList"
   import BackTop from '../../components/content/backTop/BackTop'
+  // import Toast from '../../components/common/toast/Toast'
 
   import {getDetail, Goods, Shop, GoodsParam, getRecommend} from "../../network/detail"
   import {debounce} from "../../common/utils";
@@ -52,7 +49,8 @@
       DetailCommentInfo,
       GoodList,
       DetailBottomBar,
-      BackTop
+      BackTop,
+      // Toast
     },
  
     data () {
@@ -70,6 +68,8 @@
         currentIndex: 0,
         isShowBackTop: 0,
         isTabFixed: false,
+        // message: '',
+        // show: false
       }
     },
     created () {
@@ -166,7 +166,18 @@
         product.realPrice = this.goods.realPrice;
 
         //将商品添加到购物车里
-        this.$store.dispatch('addCart', product)
+        this.$store.dispatch('addCart', product).then(res => {
+          // this.show = true;
+          // this.message = res;
+          
+          // setTimeout(() => {
+          //   this.show = false
+          //   this.message = ''
+          // }, 1500)
+
+          this.$toast.show(res, 2000)
+          console.log(this.$toast);
+        })
       }
     }
   }
